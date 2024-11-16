@@ -1,1 +1,3 @@
 # password-strength-checker
+
+This password checker and generator tool provides a secure and user-friendly way to analyze and strengthen passwords. It checks password strength based on length, character types, and common patterns, offering detailed feedback and suggestions. The tool also generates unique, strong passwords with a mix of characters, digits, and punctuation. With input validation and secure password input, users can trust this tool to help protect their online security. Whether checking existing passwords or generating new ones, this tool is an essential resource for maintaining robust password security. It's easy to use and provides peace of mind.
