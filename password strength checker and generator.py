@@ -1,143 +1,106 @@
-# Import necessary modules
 import string
-import getpass
 import secrets
 import re
+import tkinter as tk
+from tkinter import messagebox
 
 # Function to check password strength
 def check_pwd(password):
-    """
-    Checks the strength of a password.
-
-    Args:
-        password (str): The password to check.
-
-    Returns:
-        dict: A dictionary containing the password's strength and remarks.
-    """
-    # Initialize variables
     strength = 0
     remarks = []
     lower_count = upper_count = num_count = wspace_count = special_count = 0
 
-    # Iterate through each character in the password
     for char in password:
-        # Check for lowercase letters
         if char in string.ascii_lowercase:
             lower_count += 1
-        # Check for uppercase letters
         elif char in string.ascii_uppercase:
             upper_count += 1
-        # Check for digits
         elif char in string.digits:
             num_count += 1
-        # Check for whitespace characters
         elif char == ' ':
             wspace_count += 1
-        # Check for special characters
         else:
             special_count += 1
 
-    # Calculate password strength
     if lower_count >= 1: strength += 1
     if upper_count >= 1: strength += 1
     if num_count >= 1: strength += 1
     if wspace_count >= 1: strength += 1
     if special_count >= 1: strength += 1
 
-    # Check for common patterns
     if re.search(r"abc|123|qwerty", password, re.IGNORECASE):
-        remarks.append("Password contains common pattern.")
+        remarks.append("⚠️ Common pattern detected.")
 
-    # Determine password strength remarks
     if strength == 1:
-        remarks.append("Very Bad Password!!! Change ASAP")
+        remarks.append("❌ Very Bad Password! Change ASAP.")
     elif strength == 2:
-        remarks.append("Not A Good Password!!! Change ASAP")
+        remarks.append("⚠️ Not a Good Password! Change ASAP.")
     elif strength == 3:
-        remarks.append("It's a weak password, consider changing")
+        remarks.append("🟡 Weak Password. Consider changing.")
     elif strength == 4:
-        remarks.append("It's a hard password, but can be better")
+        remarks.append("🟠 Decent Password. Could be stronger.")
     elif strength == 5:
-        remarks.append("A very strong password")
+        remarks.append("✅ Very Strong Password!")
 
-    # Print password analysis
-    print('Your password has: ')
-    print(f"{lower_count} lowercase characters")
-    print(f"{upper_count} uppercase characters")
-    print(f"{num_count} numeric characters")
-    print(f"{wspace_count} whitespace characters")
-    print(f"{special_count} special characters")
-    print(f"Password Strength: {strength}")
-    for remark in remarks:
-        print(f"Hint: {remark}")
-
-    return {"strength": strength, "remarks": remarks}
+    result = (
+        f"Lowercase: {lower_count}\n"
+        f"Uppercase: {upper_count}\n"
+        f"Digits: {num_count}\n"
+        f"Whitespace: {wspace_count}\n"
+        f"Special: {special_count}\n"
+        f"Strength Score: {strength}/5\n"
+        + "\n".join(remarks)
+    )
+    return result
 
 # Function to generate a strong password
 def generate_strong_pwd(length=12):
-    """
-    Generates a strong password.
-
-    Args:
-        length (int): The length of the password.
-
-    Returns:
-        str: A strong password.
-    """
     alphabet = string.ascii_letters + string.digits + string.punctuation
     while True:
-        password = ''.join(secrets.choice(alphabet) for i in range(length))
+        password = ''.join(secrets.choice(alphabet) for _ in range(length))
         if (any(c.islower() for c in password)
                 and any(c.isupper() for c in password)
                 and any(c.isdigit() for c in password)
                 and any(c in string.punctuation for c in password)):
-            break
-    return password
+            return password
 
-# Function to ask user if they want to check another password
-def ask_pwd(another_pwd=False):
-    """
-    Asks user if they want to check another password.
+# GUI setup
+def analyze_password():
+    pwd = entry.get()
+    if not pwd:
+        messagebox.showwarning("Input Error", "Please enter a password.")
+        return
+    result = check_pwd(pwd)
+    output.config(state='normal')
+    output.delete(1.0, tk.END)
+    output.insert(tk.END, result)
+    output.config(state='disabled')
 
-    Args:
-        another_pwd (bool): Whether to ask for another password.
+def generate_password():
+    pwd = generate_strong_pwd()
+    entry.delete(0, tk.END)
+    entry.insert(0, pwd)
+    output.config(state='normal')
+    output.delete(1.0, tk.END)
+    output.insert(tk.END, "Generated Password:\n" + pwd)
+    output.config(state='disabled')
 
-    Returns:
-        bool: True if user wants to check another password, False otherwise.
-    """
-    valid = False
-    if another_pwd:
-        choice = input('Do you want to enter another pwd (y/n): ')
-    else:
-        choice = input('Do you want to check pwd (y), generate strong pwd (g) or quit (q): ')
-    
-    # Validate user input
-    while not valid:
-        if choice.lower() == 'y':
-            return True
-        elif choice.lower() == 'n':
-            return False
-        elif choice.lower() == 'g':
-            print("Generated strong password: ", generate_strong_pwd())
-            return False
-        elif choice.lower() == 'q':
-            return False
-        else:
-            print('Invalid, Try Again')
-            choice = input('Do you want to check pwd (y), generate strong pwd (g) or quit (q): ')
+# Main window
+root = tk.Tk()
+root.title("🔐 Password Checker & Generator")
+root.geometry("400x400")
+root.resizable(False, False)
 
-# Main program
-if __name__ == '__main__':
-    print('+++ welcome to PWD checker +++')
-    
-    # Ask user if they want to check a password
-    ask_pw = ask_pwd()
-    
-    # Check password strength
-    while ask_pw:
-        password = getpass.getpass("Enter Password: ")
-        check_pwd(password)
-        ask_pw = ask_pwd(True)
+# Widgets
+tk.Label(root, text="Enter Password:", font=("Arial", 12)).pack(pady=10)
+entry = tk.Entry(root, show="*", width=30, font=("Arial", 12))
+entry.pack()
 
+tk.Button(root, text="Check Strength", command=analyze_password, bg="#4CAF50", fg="white").pack(pady=10)
+tk.Button(root, text="Generate Strong Password", command=generate_password, bg="#2196F3", fg="white").pack(pady=5)
 
+output = tk.Text(root, height=10, width=45, state='disabled', wrap='word', font=("Arial", 10))
+output.pack(pady=10)
+
+# Run the GUI
+root.mainloop()
